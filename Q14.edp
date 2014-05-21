@@ -1,0 +1,52 @@
+////////////////////////////////////////////////////
+//MAP431 projet: Estimation d'erreurs a posteriori//
+//		Xing WEI & Chongmo LIU		  //
+//		     mai,2014			  //
+////////////////////////////////////////////////////
+
+//		     Question14.  		  //
+
+macro grad(u) [dx(u), dy(u)] //marco pour gradient
+macro div(u1,u2) ( dx(u1) + dy(u2) )//macro pour divergence
+macro module2(u) (u)'*(u)// macro pour module carre 
+
+//les paramètres
+real f=1,alpha=1,k=1;
+real dn=10;//densite dn de mailles par unite de longeur
+
+//1.etablir le maillage
+border C(t=0, 2*pi){x=cos(t); y=sin(t);}//Omiga = undisque unite
+mesh Th = buildmesh (C(dn*2*pi));//
+cout<<"dimension = "<<Th.nt;
+plot(Th);
+
+//2.definir la FV
+fespace Vh(Th,P1);
+Vh uh,vh;
+
+problem solvePotentiel(uh,vh)=
+	int2d(Th)(k*grad(uh)'*grad(vh) +alpha*uh*vh) 
+	- int2d(Th)(f*vh)
+	+on(C,uh=0);
+
+
+fespace Wh(Th,RT0);
+Wh [sgmh1,sgmh2],[tao1,tao2];
+
+problem solveFlux([sgmh1,sgmh2],[tao1,tao2])=
+	int2d(Th)( 1/k*(sgmh1*tao1+sgmh2*tao2))
+	+int2d(Th)( 1/alpha*div(sgmh1,sgmh2)*div(tao1,tao2) )
+	+int2d(Th)( 1/alpha*f*div(tao1,tao2));
+
+//3. resoudre la FV
+solvePotentiel;
+solveFlux;//uh est la solution
+
+//sortir les resultats
+real err=int2d(Th)( 1/k*module2( [sgmh1,sgmh2]-k*grad(uh) ) )
+	+int2d(Th)(1/alpha*  (f-alpha*uh+div(sgmh1,sgmh2))^2 ) ;//calculer l'erreurs selonl'inégalité montré en question(1)
+
+cout<<"erreur ="<<err<<endl;
+
+
+

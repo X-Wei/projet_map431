@@ -1,0 +1,38 @@
+////////////////////////////////////////////////////
+//MAP431 projet: Estimation d'erreurs a posteriori//
+//		Xing WEI & Chongmo LIU		  //
+//		     mai,2014			  //
+////////////////////////////////////////////////////
+
+//		     Question12.  		  //
+
+macro grad(u) [dx(u), dy(u)] //définir le marco pour gradient
+
+//les paramètres
+real f=1,alpha=1,k=1;
+real dn=10;//densite dn de mailles par unite de longeur
+
+//1.etablir le maillage
+border C(t=0, 2*pi){x=cos(t); y=sin(t);}//Omiga = undisque unite
+mesh Th = buildmesh (C(dn*2*pi));//
+plot(Th);
+
+//2.definir la FV
+fespace Vh(Th,P1);
+Vh uh,vh;
+
+problem solvePotentiel(uh,vh)=
+	int2d(Th)(k*grad(uh)'*grad(vh) +alpha*uh*vh) 
+	- int2d(Th)(f*vh)
+	+on(C,uh=0);
+
+//3. resoudre la FV
+solvePotentiel;//uh est la solution
+
+//sortir les resultats
+real uhmoy=int2d(Th)(uh)/pi;//valeur moyenne de uh
+cout<<"la moyenne de uh sur Omiga = "<<uhmoy<<endl;
+plot(uh,ps="les isovaleurs du potentiel");//les isovaleurs du potentiel
+
+
+

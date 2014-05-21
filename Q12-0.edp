@@ -1,0 +1,30 @@
+//
+//Q12.
+
+real f=1,alpha=1,k=1;
+real dn=10;//densite dn de mailles par unite de longeur
+
+//1.etablir le maillage
+border C(t=0, 2*pi){x=cos(t); y=sin(t);}//Omiga = undisque unite
+mesh Th = buildmesh (C(dn*2*pi));
+plot(Th);
+
+//2.definir la FV
+
+macro grad(u) [dx(u), dy(u)] // //marco pour gradient
+fespace Vh(Th,P1);
+Vh uh,vh;
+
+problem galerkin(uh,vh)=
+	int2d(Th)(k*grad(uh)'*grad(vh) +alpha*uh*vh) 
+	- int2d(Th)(f*vh)
+	+on(C,uh=0);
+
+//3. resoudre la FV
+galerkin;//uh est la solution
+//real uhmoy=??
+cout<<"la moyenne de uh sur Omiga = "<<uh<<endl;
+
+//les isovaleurs du potentiel??
+plot(uh);
+
